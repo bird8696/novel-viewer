@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>소설 뷰어 — 프로젝트 계획서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600&family=DM+Mono:wght@400;500&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0d0b;
+    --surface: #161512;
+    --surface2: #1e1c18;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e2d9;
+    --text-muted: #8a8278;
+    --text-dim: #4a4640;
+    --accent: #c9a96e;
+    --accent2: #7eb8a4;
+    --accent3: #c97e7e;
+    --accent4: #8fa0c9;
+    --serif: 'Gowun Batang', 'Noto Serif KR', serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── 헤더 ── */
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding: 4rem 3rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .hero-sub span::before { content: '/ '; color: var(--text-dim); }
+
+  /* ── 레이아웃 ── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  /* ── 섹션 ── */
+  .section { margin-bottom: 3rem; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 32px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .section-phase {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  /* ── 카드 그리드 ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+  .card-icon {
+    font-size: 16px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+  .card-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .tag-must { background: rgba(201,126,126,0.15); color: var(--accent3); border: 1px solid rgba(201,126,126,0.2); }
+  .tag-nice { background: rgba(126,184,164,0.12); color: var(--accent2); border: 1px solid rgba(126,184,164,0.2); }
+  .tag-pro  { background: rgba(143,160,201,0.12); color: var(--accent4); border: 1px solid rgba(143,160,201,0.2); }
+  .tag-fb   { background: rgba(201,169,110,0.12); color: var(--accent);  border: 1px solid rgba(201,169,110,0.2); }
+
+  /* ── DB 테이블 ── */
+  .db-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+  td:first-child { color: var(--accent2); }
+  td:nth-child(2) { color: var(--accent); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── 흐름 다이어그램 ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .flow-box {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text);
+  }
+  .flow-arrow { color: var(--text-dim); font-size: 12px; }
+
+  /* ── 사이드바 ── */
+  .sidebar { position: sticky; top: 2rem; }
+
+  /* 폴더 트리 */
+  .folder-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .folder-tree-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .folder-tree-body {
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 2;
+  }
+  .tree-line { display: flex; align-items: center; gap: 0; }
+  .tree-indent { display: inline-block; width: 16px; flex-shrink: 0; }
+  .tree-branch { color: var(--text-dim); flex-shrink: 0; margin-right: 4px; }
+  .tree-folder { color: var(--accent); }
+  .tree-file { color: var(--text-muted); }
+  .tree-file.special { color: var(--accent2); }
+  .tree-file.config { color: var(--accent4); }
+  .tree-comment {
+    font-size: 9.5px;
+    color: var(--text-dim);
+    margin-left: 6px;
+  }
+
+  /* 범례 */
+  .legend {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 1.5rem;
+  }
+  .legend-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* 스택 */
+  .stack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stack-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .stack-row {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stack-row:last-child { border-bottom: none; }
+  .stack-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .stack-val { font-family: var(--mono); font-size: 11px; color: var(--accent); }
+
+  /* 구분선 */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  .note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    padding-left: 12px;
+    border-left: 2px solid var(--border2);
+    line-height: 1.7;
+  }
+
+  /* 개발 순서 */
+  .steps { display: flex; flex-direction: column; gap: 8px; }
+  .step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.2);
+    border-radius: 50%;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .step-text strong { color: var(--text); font-weight: 700; }
+
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; padding: 1.5rem; }
+    .hero { padding: 2.5rem 1.5rem 2rem; }
+    .sidebar { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="hero">
+  <div class="hero-label">Project Plan · v2.0 · Firebase Edition</div>
+  <h1 class="hero-title">TXT <span>소설 뷰어</span><br>프로젝트 계획서</h1>
+  <div class="hero-sub">
+    <span>Vanilla JS + Firebase</span>
+    <span>반응형 웹 + PWA</span>
+    <span>기기 간 동기화</span>
+    <span>완전 무료 배포</span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- ══════════════ 메인 컨텐츠 ══════════════ -->
+  <div class="content">
+
+    <!-- Phase 0 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">00</span>
+        <span class="section-title">Firebase 셋업</span>
+        <span class="section-phase" style="color:var(--accent);border-color:rgba(201,169,110,0.3);">Phase 0 · 선행 작업</span>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔑</div>
+          <div class="card-title">Google OAuth 로그인</div>
+          <div class="card-desc">구글 계정 1클릭 로그인. Firebase Auth 사용. 토큰 자동 관리 및 세션 유지</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🗄️</div>
+          <div class="card-title">Firestore DB 설계</div>
+          <div class="card-desc">users/{uid}/books/{bookId} 구조. 읽기 위치·북마크·메모·설정 저장</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">실시간 동기화</div>
+          <div class="card-desc">onSnapshot으로 다른 기기 저장 즉시 반영. 오프라인 캐시 자동 지원</div>
+          <span class="tag tag-fb">Firebase</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">비로그인 Fallback</div>
+          <div class="card-desc">로그인 없이도 localStorage 동작. 로그인 시 기존 데이터 자동 마이그레이션</div>
+          <span class="tag tag-nice">권장</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.25rem;">
+        <div class="flow">
+          <div class="flow-box">스크롤 멈춤</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">debounce 2초</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Firestore 저장</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">다른 기기 onSnapshot</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">위치 자동 반영</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DB 구조 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">00-1</span>
+        <span class="section-title">Firestore 데이터 구조</span>
+      </div>
+      <div class="db-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>컬렉션 경로</th>
+              <th>저장 필드</th>
+              <th>설명</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>users/{uid}/books/{bookId}</td>
+              <td>title, fileHash, totalChars, createdAt</td>
+              <td style="color:var(--text-muted)">소설 메타데이터</td>
+            </tr>
+            <tr>
+              <td>…/books/{bookId}/progress</td>
+              <td>chapterIdx, scrollY, updatedAt</td>
+              <td style="color:var(--text-muted)">읽기 위치 (실시간 저장)</td>
+            </tr>
+            <tr>
+              <td>…/books/{bookId}/bookmarks</td>
+              <td>chapterIdx, scrollY, label, createdAt</td>
+              <td style="color:var(--text-muted)">북마크 목록</td>
+            </tr>
+            <tr>
+              <td>…/books/{bookId}/highlights</td>
+              <td>startOffset, endOffset, color, note</td>
+              <td style="color:var(--text-muted)">하이라이트 + 메모</td>
+            </tr>
+            <tr>
+              <td>users/{uid}/settings</td>
+              <td>theme, fontSize, lineHeight, fontFamily</td>
+              <td style="color:var(--text-muted)">전역 독자 설정</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">* 소설 파일 자체는 서버에 저장하지 않음. 파일명 + 크기로 생성한 해시값(bookId)으로만 식별.</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Phase 1 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-title">파일 처리 & 뷰어 기반</span>
+        <span class="section-phase" style="color:var(--accent2);border-color:rgba(126,184,164,0.3);">Phase 1</span>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📂</div>
+          <div class="card-title">TXT 업로드 & 인코딩</div>
+          <div class="card-desc">드래그 앤 드롭 + 클릭. UTF-8 / EUC-KR 자동 감지. 파일 해시로 bookId 생성</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">📖</div>
+          <div class="card-title">챕터 자동 파싱</div>
+          <div class="card-desc">제N장 / Chapter N / 구분선 패턴 정규식 인식. 목차 사이드바 자동 생성</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔠</div>
+          <div class="card-title">폰트 & 텍스트 설정</div>
+          <div class="card-desc">크기·줄간격·글꼴·최대 너비. 설정값도 Firestore에 저장되어 기기 간 유지</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🌙</div>
+          <div class="card-title">다크/라이트/세피아</div>
+          <div class="card-desc">3가지 테마. 계정에 묶여 어느 기기에서나 같은 테마로 시작</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Phase 2 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-title">읽기 편의 기능</span>
+        <span class="section-phase" style="color:var(--accent4);border-color:rgba(143,160,201,0.3);">Phase 2</span>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <div class="card-title">기기 간 위치 동기화</div>
+          <div class="card-desc">스크롤 멈추면 Firestore 저장. 다른 기기 열면 "이어볼까요?" 팝업</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔖</div>
+          <div class="card-title">북마크</div>
+          <div class="card-desc">Firestore 저장. 여러 개 관리 가능. 어느 기기에서나 동일하게 보임</div>
+          <span class="tag tag-must">필수</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <div class="card-title">텍스트 검색</div>
+          <div class="card-desc">Ctrl+F 스타일. 결과 하이라이트 + 이전/다음 내비게이션. 정규식 옵션</div>
+          <span class="tag tag-nice">권장</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <div class="card-title">읽기 진행률</div>
+          <div class="card-desc">상단 프로그레스바 + 남은 읽기 시간 추정 표시</div>
+          <span class="tag tag-nice">권장</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">🖊️</div>
+          <div class="card-title">메모 & 하이라이트</div>
+          <div class="card-desc">드래그 선택 → 형광펜 + 메모. Firestore 저장. 메모 목록 패널</div>
+          <span class="tag tag-nice">권장</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">⌨️</div>
+          <div class="card-title">단축키</div>
+          <div class="card-desc">방향키/스페이스 스크롤, F 전체화면, B 북마크, Ctrl+F 검색</div>
+          <span class="tag tag-nice">권장</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Phase 3 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="section-title">고급 기능</span>
+        <span class="section-phase" style="color:var(--accent3);border-color:rgba(201,126,126,0.3);">Phase 3</span>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔊</div>
+          <div class="card-title">TTS 읽어주기</div>
+          <div class="card-desc">Web Speech API 내장 활용. 속도·목소리 조절. 읽는 위치 따라읽기 하이라이트</div>
+          <span class="tag tag-pro">고급</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <div class="card-title">PWA 지원</div>
+          <div class="card-desc">홈화면 추가. 오프라인 시 마지막 챕터 캐시. Service Worker 등록</div>
+          <span class="tag tag-pro">고급</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <div class="card-title">읽기 통계</div>
+          <div class="card-desc">총 읽은 시간, 일별 독서량, 완독한 소설 기록. Firestore에 누적</div>
+          <span class="tag tag-pro">고급</span>
+        </div>
+        <div class="card">
+          <div class="card-icon">📤</div>
+          <div class="card-title">내보내기</div>
+          <div class="card-desc">메모·북마크 JSON 내보내기. 특정 챕터 클립보드 복사</div>
+          <span class="tag tag-pro">고급</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 개발 순서 -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="section-title">권장 개발 순서</span>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Firebase 프로젝트 생성</strong> — Auth·Firestore 활성화, 보안 규칙 초안 작성</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>index.html 뼈대 + 파일 업로드 + 텍스트 렌더링</strong> — 핵심 뷰어 완성</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>다크/라이트/세피아 테마 + 폰트 설정 패널</strong></div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-text"><strong>챕터 파싱 + 목차 사이드바</strong> — 반응형 모바일 레이아웃 포함</div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-text"><strong>Google 로그인 + Firestore 연동</strong> — 읽기 위치 자동 저장·동기화</div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div class="step-text"><strong>북마크 + 검색 + 진행률</strong></div>
+        </div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div class="step-text"><strong>메모·하이라이트</strong> — 복잡도 높은 구간</div>
+        </div>
+        <div class="step">
+          <div class="step-num">8</div>
+          <div class="step-text"><strong>TTS + PWA + 통계</strong> — 마무리 고급 기능</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- ══════════════ 사이드바 ══════════════ -->
+  <div class="sidebar">
+
+    <!-- 범례 -->
+    <div class="legend">
+      <div class="legend-title">범례</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent3)"></div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">필수 — 없으면 동작 안 함</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent2)"></div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">권장 — 있으면 훨씬 좋음</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent4)"></div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">고급 — Phase 3 이후</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent)"></div>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted)">Firebase 전용 기능</span>
+      </div>
+    </div>
+
+    <!-- 기술 스택 -->
+    <div class="stack-card" style="margin-bottom:1.5rem;">
+      <div class="stack-card-header">기술 스택</div>
+      <div class="stack-row">
+        <span class="stack-label">프론트</span>
+        <span class="stack-val">Vanilla JS + CSS3</span>
+      </div>
+      <div class="stack-row">
+        <span class="stack-label">인증</span>
+        <span class="stack-val">Firebase Auth</span>
+      </div>
+      <div class="stack-row">
+        <span class="stack-label">DB</span>
+        <span class="stack-val">Firestore</span>
+      </div>
+      <div class="stack-row">
+        <span class="stack-label">호스팅</span>
+        <span class="stack-val">Firebase Hosting</span>
+      </div>
+      <div class="stack-row">
+        <span class="stack-label">비용</span>
+        <span class="stack-val">무료 (Spark Plan)</span>
+      </div>
+      <div class="stack-row">
+        <span class="stack-label">빌드 도구</span>
+        <span class="stack-val">없음</span>
+      </div>
+    </div>
+
+    <!-- 폴더 트리 -->
+    <div class="folder-tree">
+      <div class="folder-tree-header">
+        <span>📁</span> 프로젝트 구조
+      </div>
+      <div class="folder-tree-body">
+
+        <div class="tree-line">
+          <span class="tree-folder">novel-viewer/</span>
+        </div>
+
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-folder">docs/</span>
+          <span class="tree-comment">계획서·문서</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">└─ </span>
+          <span class="tree-file special">PLAN.html</span>
+          <span class="tree-comment">← 이 파일</span>
+        </div>
+
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-folder">src/</span>
+          <span class="tree-comment">소스 코드</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-folder">js/</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">firebase.js</span>
+          <span class="tree-comment">초기화·Auth</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">parser.js</span>
+          <span class="tree-comment">챕터 파싱</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">viewer.js</span>
+          <span class="tree-comment">렌더·스크롤</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">sync.js</span>
+          <span class="tree-comment">Firestore 동기화</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">bookmark.js</span>
+          <span class="tree-comment">북마크 관리</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">highlight.js</span>
+          <span class="tree-comment">하이라이트·메모</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">search.js</span>
+          <span class="tree-comment">텍스트 검색</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">tts.js</span>
+          <span class="tree-comment">TTS 기능</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">└─ </span>
+          <span class="tree-file">settings.js</span>
+          <span class="tree-comment">테마·폰트 설정</span>
+        </div>
+
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-folder">css/</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">base.css</span>
+          <span class="tree-comment">리셋·변수</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">layout.css</span>
+          <span class="tree-comment">반응형 레이아웃</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file">themes.css</span>
+          <span class="tree-comment">다크·라이트·세피아</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">└─ </span>
+          <span class="tree-file">components.css</span>
+          <span class="tree-comment">UI 컴포넌트</span>
+        </div>
+
+        <div class="tree-line">
+          <span class="tree-indent"></span><span class="tree-indent"></span>
+          <span class="tree-branch">└─ </span>
+          <span class="tree-folder">assets/</span>
+          <span class="tree-comment">아이콘·폰트</span>
+        </div>
+
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file special">index.html</span>
+          <span class="tree-comment">메인 진입점</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file config">manifest.json</span>
+          <span class="tree-comment">PWA 설정</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file config">sw.js</span>
+          <span class="tree-comment">Service Worker</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file config">.firebaserc</span>
+          <span class="tree-comment">Firebase 프로젝트 ID</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file config">firebase.json</span>
+          <span class="tree-comment">호스팅·규칙 설정</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">├─ </span>
+          <span class="tree-file config">firestore.rules</span>
+          <span class="tree-comment">DB 보안 규칙</span>
+        </div>
+        <div class="tree-line">
+          <span class="tree-indent"></span>
+          <span class="tree-branch">└─ </span>
+          <span class="tree-file config">README.md</span>
+          <span class="tree-comment">프로젝트 설명</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+</div><!-- /main -->
+
+</body>
+</html>

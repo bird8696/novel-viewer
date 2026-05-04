@@ -1,0 +1,91 @@
+/* ════════════════════════════════════
+   themes.css — 다크 · 라이트 · 세피아
+   [data-theme] 속성으로 전환
+════════════════════════════════════ */
+
+/* ── 다크 (기본) ── */
+[data-theme="dark"] {
+  --bg: #0e0d0b;
+  --bg-surface: #161512;
+  --bg-surface2: #1e1c18;
+  --bg-hover: #252320;
+  --border: rgba(255, 255, 255, 0.07);
+  --border2: rgba(255, 255, 255, 0.13);
+  --text: #e8e2d9;
+  --text-muted: #8a8278;
+  --text-dim: #4a4640;
+  --accent: #c9a96e;
+  --accent-hover: #d4b87e;
+  --accent-dim: rgba(201, 169, 110, 0.12);
+  --scrollbar: #2a2825;
+  --scrollbar-thumb: #3d3a35;
+  --reader-bg: #0e0d0b;
+  --topbar-bg: rgba(14, 13, 11, 0.92);
+}
+
+/* ── 라이트 ── */
+[data-theme="light"] {
+  --bg: #f8f6f2;
+  --bg-surface: #ffffff;
+  --bg-surface2: #f0ede8;
+  --bg-hover: #eae7e2;
+  --border: rgba(0, 0, 0, 0.08);
+  --border2: rgba(0, 0, 0, 0.14);
+  --text: #1a1815;
+  --text-muted: #6b6560;
+  --text-dim: #b0ada8;
+  --accent: #9e6f2e;
+  --accent-hover: #b07d35;
+  --accent-dim: rgba(158, 111, 46, 0.1);
+  --scrollbar: #e8e5e0;
+  --scrollbar-thumb: #ccc9c3;
+  --reader-bg: #f8f6f2;
+  --topbar-bg: rgba(248, 246, 242, 0.92);
+}
+
+/* ── 세피아 ── */
+[data-theme="sepia"] {
+  --bg: #f5efe3;
+  --bg-surface: #fdf7ee;
+  --bg-surface2: #ede7db;
+  --bg-hover: #e5ddd0;
+  --border: rgba(100, 75, 40, 0.12);
+  --border2: rgba(100, 75, 40, 0.2);
+  --text: #2c2318;
+  --text-muted: #7a6348;
+  --text-dim: #b8a590;
+  --accent: #8b5a1e;
+  --accent-hover: #9d6624;
+  --accent-dim: rgba(139, 90, 30, 0.1);
+  --scrollbar: #e5ddd0;
+  --scrollbar-thumb: #c8bc9a;
+  --reader-bg: #f5efe3;
+  --topbar-bg: rgba(245, 239, 227, 0.92);
+}
+
+/* ── 공통 전환 ── */
+body,
+.topbar,
+.sidebar,
+.settings-panel,
+.reader {
+  transition:
+    background 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+}
+
+/* ── 스크롤바 스타일 ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
