@@ -1,14 +1,9 @@
-// ════════════════════════════════════
-// firebase-config.js
-// ⚠️  .gitignore 에 포함됨 — GitHub에 올라가지 않음
-// ════════════════════════════════════
-
 export const firebaseConfig = {
-  apiKey: "AIzaSyD6SZtg6qSNJNCJfWNTUC5K4wzY9trPZsM",
-  authDomain: "novel-viewer.firebaseapp.com",
-  projectId: "novel-viewer",
-  storageBucket: "novel-viewer.firebasestorage.app",
-  messagingSenderId: "236358401932",
-  appId: "1:236358401932:web:58b61ae14b1f280f3ca0a9",
-  measurementId: "G-K64BXWDY6F",
+  apiKey: "여기에-API-KEY-입력",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:xxxxxxxxxxxxxxxx",
+  measurementId: "G-XXXXXXXXXX",
 };
