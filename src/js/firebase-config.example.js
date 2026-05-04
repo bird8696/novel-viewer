@@ -1,18 +1,14 @@
 // ════════════════════════════════════
-// firebase-config.example.js
-//
-// ⚠️  이 파일은 예시 템플릿이에요.
-//     실제 키를 채워서 firebase-config.js 로
-//     복사한 뒤 사용하세요.
-//     firebase-config.js 는 .gitignore에
-//     포함되어 있어서 GitHub에 올라가지 않아요.
+// firebase-config.js
+// ⚠️  .gitignore 에 포함됨 — GitHub에 올라가지 않음
 // ════════════════════════════════════
 
 export const firebaseConfig = {
-  apiKey: "여기에-API-KEY-입력",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:xxxxxxxxxxxxxxxx",
+  apiKey: "AIzaSyD6SZtg6qSNJNCJfWNTUC5K4wzY9trPZsM",
+  authDomain: "novel-viewer.firebaseapp.com",
+  projectId: "novel-viewer",
+  storageBucket: "novel-viewer.firebasestorage.app",
+  messagingSenderId: "236358401932",
+  appId: "1:236358401932:web:58b61ae14b1f280f3ca0a9",
+  measurementId: "G-K64BXWDY6F",
 };
