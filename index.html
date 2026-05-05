@@ -428,27 +428,10 @@
             showResumePopup(saved.chapterIdx, saved.scrollY, book.chapters);
           }
 
-          // 다른 기기 감지는 watchProgress 대신
-          // 페이지 포커스 복귀 시 1회 확인 (탭 전환 or 절전 복귀)
-          document.addEventListener(
-            "visibilitychange",
-            async () => {
-              if (document.visibilityState !== "visible") return;
-              const latest = await loadProgress(book.id);
-              if (!latest) return;
-              const contentArea = document.getElementById("content-area");
-              const currentScroll = contentArea?.scrollTop ?? 0;
-              // 현재 위치랑 500px 이상 차이날 때만 팝업
-              if (Math.abs(latest.scrollY - currentScroll) > 500) {
-                showResumePopup(
-                  latest.chapterIdx,
-                  latest.scrollY,
-                  book.chapters,
-                );
-              }
-            },
-            { once: false },
-          );
+          // 다른 기기에서 저장 시 이어읽기 팝업
+          watchProgress(book.id, ({ chapterIdx, scrollY }) => {
+            showResumePopup(chapterIdx, scrollY, book.chapters);
+          });
 
           // 북마크 초기화
           initBookmark({
@@ -552,6 +535,18 @@
           t.style.transition = "opacity 0.3s";
           setTimeout(() => t.remove(), 300);
         }, 2000);
+      }
+    </script>
+
+    <!-- Service Worker 등록 -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then(() => console.log("SW 등록 완료"))
+            .catch((err) => console.warn("SW 등록 실패:", err));
+        });
       }
     </script>
   </body>
