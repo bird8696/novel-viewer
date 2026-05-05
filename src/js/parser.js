@@ -1,37 +1,35 @@
 // ════════════════════════════════════
 // parser.js — 파일 업로드 · 인코딩 감지 · 챕터 파싱
+// 경로: src/js/parser.js
 // ════════════════════════════════════
 
 // ── 챕터 구분 패턴 ─────────────────────────────
-// 아래 패턴 중 하나라도 매칭되면 챕터 제목으로 인식
 const CHAPTER_PATTERNS = [
-  /^제\s*\d+\s*[장화편권]/, // 제1장, 제 2화, 제3편
-  /^chapter\s*\d+/i, // Chapter 1, CHAPTER 2
-  /^\d+\s*[장화편]/, // 1장, 2화, 3편
+  /^\d+\s*화/, // 1화, 2화, 1 화
+  /^제\s*\d+\s*[장화편권]/, // 제1장, 제 2화
+  /^chapter\s*\d+/i, // Chapter 1
+  /^\d+\s*[장편권]/, // 1장, 2편
   /^[一二三四五六七八九十百千]+[장화편]/, // 한자 숫자
   /^={3,}/, // === 구분선
   /^-{5,}/, // ----- 구분선
   /^\*{3,}/, // *** 구분선
-  /^\[.{1,30}\]$/, // [챕터명] 형식
-  /^<.{1,30}>$/, // <챕터명> 형식
-  /^프롤로그|에필로그|후기|작가의\s*말/, // 특수 챕터
+  /^\[.{1,30}\]$/, // [챕터명]
+  /^<.{1,30}>$/, // <챕터명>
+  /^(프롤로그|에필로그|후기|작가의\s*말)/,
 ];
 
 // ── 파일 업로드 초기화 ─────────────────────────
 export function initParser({ onBookLoaded }) {
   const dropZone = document.getElementById("drop-zone");
   const fileInput = document.getElementById("file-input");
-
   if (!dropZone || !fileInput) return;
 
-  // 클릭으로 파일 선택
   fileInput.addEventListener("change", (e) => {
     const file = e.target.files?.[0];
     if (file) processFile(file, onBookLoaded);
-    fileInput.value = ""; // 같은 파일 재업로드 허용
+    fileInput.value = "";
   });
 
-  // 드래그 앤 드롭
   dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropZone.classList.add("drag-over");
@@ -82,26 +80,18 @@ async function processFile(file, onBookLoaded) {
 }
 
 // ── 인코딩 자동 감지 ───────────────────────────
-// UTF-8 → EUC-KR 순서로 시도, 깨짐 감지 후 전환
 async function readFileWithEncoding(file) {
   const buffer = await file.arrayBuffer();
 
-  // UTF-8 먼저 시도
-  const utf8Text = new TextDecoder("utf-8", { fatal: true });
   try {
-    return utf8Text.decode(buffer);
-  } catch {
-    // UTF-8 실패 → EUC-KR 시도
-  }
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {}
 
-  // EUC-KR 시도
   try {
-    const euckrText = new TextDecoder("euc-kr", { fatal: true });
-    return euckrText.decode(buffer);
-  } catch {
-    // 둘 다 실패 → 강제 UTF-8 (깨진 글자 허용)
-    return new TextDecoder("utf-8", { fatal: false }).decode(buffer);
-  }
+    return new TextDecoder("euc-kr", { fatal: true }).decode(buffer);
+  } catch {}
+
+  return new TextDecoder("utf-8", { fatal: false }).decode(buffer);
 }
 
 // ── 챕터 파싱 ──────────────────────────────────
@@ -111,14 +101,12 @@ export function parseChapters(text) {
   let current = null;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
+    // \r 포함 특수문자 제거 후 trim
+    const trimmed = lines[i].replace(/\r/g, "").trim();
 
     if (isChapterTitle(trimmed)) {
-      // 이전 챕터 저장
       if (current) chapters.push(finishChapter(current));
 
-      // 새 챕터 시작
       current = {
         index: chapters.length,
         title: cleanTitle(trimmed),
@@ -126,17 +114,14 @@ export function parseChapters(text) {
       };
     } else {
       if (!current) {
-        // 챕터 구분 없는 파일 — 전체를 1챕터로
         current = { index: 0, title: "본문", lines: [] };
       }
-      current.lines.push(line);
+      current.lines.push(lines[i]);
     }
   }
 
-  // 마지막 챕터 저장
   if (current) chapters.push(finishChapter(current));
 
-  // 챕터가 1개고 제목이 "본문"이면 파일명으로 교체 (나중에 viewer에서 처리)
   return chapters.length > 0
     ? chapters
     : [{ index: 0, title: "본문", content: text, charCount: text.length }];
@@ -144,20 +129,29 @@ export function parseChapters(text) {
 
 // ── 챕터 타이틀 판별 ───────────────────────────
 function isChapterTitle(line) {
-  if (!line || line.length > 60) return false; // 너무 긴 줄은 제외
-  return CHAPTER_PATTERNS.some((pattern) => pattern.test(line));
+  if (!line) return false;
+
+  // 길이 제한 — 100자 이내
+  if (line.length > 100) return false;
+
+  // 패턴 매칭
+  if (CHAPTER_PATTERNS.some((p) => p.test(line))) return true;
+
+  // 추가: "N화 제목" 형식 — 숫자화 로 시작하는 모든 줄
+  // ex) "1화 진짜 억울해 죽겠네!", "23화 귀환"
+  if (/^\d+화/.test(line)) return true;
+
+  return false;
 }
 
 // ── 챕터 제목 정리 ────────────────────────────
 function cleanTitle(title) {
-  // 구분선 패턴이면 빈 구분 제목으로
   if (/^[=\-*]{3,}$/.test(title)) return "─────";
   return title;
 }
 
 // ── 챕터 마무리 ───────────────────────────────
 function finishChapter(chapter) {
-  // 앞뒤 빈 줄 제거
   while (chapter.lines.length && !chapter.lines[0].trim())
     chapter.lines.shift();
   while (chapter.lines.length && !chapter.lines.at(-1).trim())
@@ -173,8 +167,6 @@ function finishChapter(chapter) {
 }
 
 // ── 파일 해시 생성 (bookId) ────────────────────
-// 파일명 + 크기 조합으로 고유 ID 생성
-// 같은 소설이면 항상 같은 ID → Firestore에서 찾을 수 있음
 async function generateBookId(file) {
   const raw = `${file.name}-${file.size}`;
   const buffer = new TextEncoder().encode(raw);
@@ -182,12 +174,11 @@ async function generateBookId(file) {
   const hex = Array.from(new Uint8Array(hash))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return hex.slice(0, 24); // 24자리로 자름
+  return hex.slice(0, 24);
 }
 
 // ── 에러 표시 ─────────────────────────────────
 function showParserError(msg) {
-  // toast가 아직 없을 수 있으니 alert fallback
   const wrap = document.getElementById("toast-wrap");
   if (wrap) {
     const toast = document.createElement("div");

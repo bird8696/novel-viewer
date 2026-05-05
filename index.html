@@ -122,6 +122,31 @@
               <path d="M1 1h12v14l-6-4-6 4V1z" />
             </svg>
           </button>
+          <!-- TTS -->
+          <button
+            id="btn-tts"
+            class="icon-btn"
+            title="읽어주기"
+            style="display: none"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.4"
+            >
+              <path
+                d="M3 5H1v6h2l4 4V1L3 5z"
+                fill="currentColor"
+                stroke="none"
+                opacity="0.8"
+              />
+              <path d="M9.5 4.5a4 4 0 0 1 0 7" />
+              <path d="M11.5 2.5a7 7 0 0 1 0 11" />
+            </svg>
+          </button>
           <!-- 테마 토글 — 클릭마다 다크→라이트→세피아 순환 -->
           <button id="btn-theme-toggle" class="icon-btn" title="테마 전환">
             <svg
@@ -359,6 +384,21 @@
       import { initParser } from "./src/js/parser.js";
       import { initViewer, loadBook, restoreScroll } from "./src/js/viewer.js";
       import { initSettings, resetSettings } from "./src/js/settings.js";
+      import {
+        saveProgress,
+        loadProgress,
+        watchProgress,
+        saveBookMeta,
+        loadRecentBooks,
+      } from "./src/js/sync.js";
+      import {
+        initBookmark,
+        addBookmark,
+        renderBookmarks,
+      } from "./src/js/bookmark.js";
+      import { initSearch, openSearch, closeSearch } from "./src/js/search.js";
+      import { initHighlight } from "./src/js/highlight.js";
+      import { openTTS } from "./src/js/tts.js";
 
       // ① Firebase 인증
       initApp();
@@ -366,33 +406,85 @@
       // ② 뷰어 초기화
       initViewer({
         onScroll: ({ bookId, chapterIdx, scrollY }) => {
-          // sync.js 연결 전 임시 localStorage 저장
-          localStorage.setItem(
-            `progress-${bookId}`,
-            JSON.stringify({ chapterIdx, scrollY }),
-          );
+          saveProgress({ bookId, chapterIdx, scrollY });
         },
       });
 
       // ③ 파서 초기화
       initParser({
-        onBookLoaded: (book) => {
+        onBookLoaded: async (book) => {
           loadBook(book);
-          try {
-            const saved = localStorage.getItem(`progress-${book.id}`);
-            if (saved) {
-              const { chapterIdx, scrollY } = JSON.parse(saved);
-              if (chapterIdx > 0 || scrollY > 100)
-                showResumePopup(chapterIdx, scrollY, book.chapters);
-            }
-          } catch {}
+
+          // 책 메타 저장 (처음 불러올 때 1회)
+          saveBookMeta({
+            bookId: book.id,
+            title: book.title,
+            totalChars: book.totalChars,
+          });
+
+          // Firestore 또는 localStorage 에서 읽기 위치 불러오기
+          const saved = await loadProgress(book.id);
+          if (saved && (saved.chapterIdx > 0 || saved.scrollY > 100)) {
+            showResumePopup(saved.chapterIdx, saved.scrollY, book.chapters);
+          }
+
+          // 다른 기기 감지는 watchProgress 대신
+          // 페이지 포커스 복귀 시 1회 확인 (탭 전환 or 절전 복귀)
+          document.addEventListener(
+            "visibilitychange",
+            async () => {
+              if (document.visibilityState !== "visible") return;
+              const latest = await loadProgress(book.id);
+              if (!latest) return;
+              const contentArea = document.getElementById("content-area");
+              const currentScroll = contentArea?.scrollTop ?? 0;
+              // 현재 위치랑 500px 이상 차이날 때만 팝업
+              if (Math.abs(latest.scrollY - currentScroll) > 500) {
+                showResumePopup(
+                  latest.chapterIdx,
+                  latest.scrollY,
+                  book.chapters,
+                );
+              }
+            },
+            { once: false },
+          );
+
+          // 북마크 초기화
+          initBookmark({
+            bookId: book.id,
+            getPosition: () => {
+              const contentArea = document.getElementById("content-area");
+              const sections = contentArea?.querySelectorAll(".chapter") ?? [];
+              const scrollTop = contentArea?.scrollTop ?? 0;
+              let chapterIdx = 0;
+              sections.forEach((s) => {
+                if (s.offsetTop <= scrollTop + 80)
+                  chapterIdx = parseInt(s.dataset.idx, 10);
+              });
+              return { chapterIdx, scrollY: scrollTop };
+            },
+          });
+
+          // 하이라이트 초기화
+          initHighlight({ bookId: book.id });
+
+          // TTS 버튼 표시 및 이벤트
+          const ttsBtn = document.getElementById("btn-tts");
+          if (ttsBtn) {
+            ttsBtn.style.removeProperty("display");
+            ttsBtn.onclick = openTTS;
+          }
         },
       });
 
       // ④ 설정 패널 (글꼴·크기·줄간격)
       initSettings();
 
-      // 초기화 버튼
+      // ⑤ 검색 초기화
+      initSearch();
+
+      // ⑤ 초기화 버튼
       document
         .getElementById("btn-settings-reset")
         ?.addEventListener("click", () => {
@@ -400,7 +492,7 @@
           showToast("↺ 설정이 초기화됐어요");
         });
 
-      // ⑤ 테마 토글 버튼
+      // ⑥ 테마 토글 버튼
       const THEMES = ["dark", "light", "sepia"];
       const THEME_LABELS = {
         dark: "🌙 다크",
